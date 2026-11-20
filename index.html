@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>把显微镜剖开看 · 放大与对焦</title>
+<link rel="icon" href="data:," />
+<link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+
+<div id="stage">
+  <canvas id="scene"></canvas>
+  <div id="labels"></div>
+</div>
+
+<header class="hud hud-title">
+  <h1>把显微镜剖开看</h1>
+  <p>一台会说话的光学显微镜 · 洋葱表皮</p>
+</header>
+
+<section class="hud hud-numbers" aria-live="polite">
+  <div class="stat">
+    <span class="stat-key">总放大倍数</span>
+    <span class="stat-val"><b id="v-mag">100</b><i>×</i></span>
+  </div>
+  <div class="stat-rule"></div>
+  <div class="stat">
+    <span class="stat-key">景深 · 能看清的厚度</span>
+    <span class="stat-val"><b id="v-dof">7.0</b><i>µm</i></span>
+  </div>
+  <div class="stat-foot"><span id="v-field">视野 1.8 mm</span><span id="v-light">亮度 82%</span></div>
+</section>
+
+<div class="hud hud-tools">
+  <button id="btn-help" class="round-btn" aria-label="查看完整原理" title="完整原理">?</button>
+  <button id="btn-tips" class="round-btn round-btn-text" aria-label="显示或收起操作提示" title="操作提示">操作</button>
+</div>
+
+<aside id="tips" class="hud tips" aria-label="操作提示">
+  <div class="tips-head">
+    <span>怎么玩</span>
+    <button id="tips-close" aria-label="收起操作提示">×</button>
+  </div>
+  <ul>
+    <li><kbd>拖红旋钮</kbd><span>粗准焦 · 大步升降</span></li>
+    <li><kbd>拖蓝旋钮</kbd><span>细准焦 · 微调</span></li>
+    <li><kbd>滚轮</kbd><span>细调 · Shift 粗调</span></li>
+    <li><kbd>点物镜 / 1 2 3</kbd><span>换倍镜</span></li>
+    <li><kbd>拖玻片</kbd><span>像往反方向走</span></li>
+    <li><kbd>拖空白</kbd><span>转视角 · 右键缩放</span></li>
+    <li><kbd>R</kbd><span>复位</span></li>
+  </ul>
+</aside>
+
+<aside class="hud eyepiece">
+  <div class="eye-ring">
+    <canvas id="eye" width="520" height="520"></canvas>
+    <div class="eye-glass"></div>
+  </div>
+  <div class="eye-cap"><span>目镜里看到的</span><b id="eye-tag">10× 物镜 · 100×</b></div>
+  <div class="eye-cap eye-sub"><span>视野直径</span><b id="eye-field">1.8 mm</b></div>
+</aside>
+
+<div class="hud narration-wrap">
+  <p id="narration">先转动粗准焦螺旋，让镜筒慢慢升降，找到细胞那一层。</p>
+</div>
+
+<div id="modal" class="modal" hidden>
+  <div class="modal-mask" data-close="1"></div>
+  <article class="modal-card">
+    <button class="modal-x" data-close="1" aria-label="关闭">×</button>
+    <p class="modal-kicker">完整原理</p>
+    <h2>放大、对焦，其实就两件事</h2>
+
+    <div class="modal-grid">
+      <section>
+        <h3><em>01</em> 放大：两级接力</h3>
+        <p>物镜先把标本放大成一个<strong>倒立的实像</strong>（中间像），目镜再像放大镜一样把这个中间像放大一遍。所以总倍数 = 目镜倍数 × 物镜倍数：这台目镜固定 10×，配 4× / 10× / 40× 物镜就是 40× / 100× / 400×。</p>
+        <p>倍率越高，看到的实际范围越小（视野直径 ≈ 视场数 ÷ 物镜倍数），通光量也越少，画面自然变暗，所以高倍镜要配更强的照明和聚光器。</p>
+      </section>
+      <section>
+        <h3><em>02</em> 对焦：一片薄薄的焦平面</h3>
+        <p>物镜只能把<strong>离它特定距离的那一薄层</strong>成清晰像，这个距离对应的平面叫焦平面。转动准焦螺旋改变物镜与标本的距离，等于让焦平面在标本里上下扫过。粗准焦大步找层，细准焦小步抠准。</p>
+        <p>发光的那片就是焦平面：被它切中的细胞清清楚楚，前后两层都糊成光晕。这就是"光学切片"。</p>
+      </section>
+      <section>
+        <h3><em>03</em> 景深：高倍镜更"挑"</h3>
+        <p>景深是能同时看清的厚度，约等于 <code>λ·n / NA²</code> 加上眼睛的容许弥散。低倍景深厚，上下几层都还凑合；数值孔径越大、倍率越高，景深越薄——40× 时薄到只切中一个细胞的一层，稍微偏一点就虚了，但换来的分辨率更高。</p>
+        <div class="dof-bars">
+          <div><span>4×</span><i style="width:100%"></i><b>≈ 18 µm</b></div>
+          <div><span>10×</span><i style="width:39%"></i><b>≈ 7 µm</b></div>
+          <div><span>40×</span><i style="width:11%"></i><b>≈ 2 µm</b></div>
+        </div>
+      </section>
+      <section>
+        <h3><em>04</em> 为什么像往反方向走</h3>
+        <p>物镜成的是<strong>上下左右都翻了 180°</strong> 的倒像。玻片往左推，视野里的细胞就往右跑；往上推，像就往下走。拖一拖玻片就能直接感受到。</p>
+        <p>模型里把洋葱表皮画成三层有厚度的细胞，是为了让"逐层对焦"看得见；真实表皮更薄，但细胞核、细胞壁本来就分处不同深度。</p>
+      </section>
+    </div>
+
+    <div class="path-line">
+      <span>光源 / 聚光器</span><i>→</i><span>标本</span><i>→</i><span>物镜</span><i>→</i><span>中间像</span><i>→</i><span>目镜</span><i>→</i><span>眼睛</span>
+    </div>
+    <p class="modal-foot">提示：按 <kbd>Esc</kbd> 或 <kbd>?</kbd> 关闭 · 所有数字都是教学用的近似值</p>
+  </article>
+</div>
+
+<div id="fatal" hidden></div>
+
+<script src="./vendor/three.min.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
