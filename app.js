@@ -13,14 +13,15 @@
   // 物理参数（教学近似值）
   // ------------------------------------------------------------------
   var OBJ = [
-    { mag: 4,  total: 40,  dof: 18.0, field: 4.5,  light: 1.00, sigma: 0.300, px: 105, plane: 1.00, len: 0.72, off: 0.25, color: 0xc79264, lens: 0xffd9a8 },
-    { mag: 10, total: 100, dof: 7.0,  field: 1.8,  light: 0.82, sigma: 0.155, px: 240, plane: 0.66, len: 0.95, off: 0.05, color: 0xb9c4d2, lens: 0xbfe6ff },
-    { mag: 40, total: 400, dof: 2.0,  field: 0.45, light: 0.64, sigma: 0.060, px: 400, plane: 0.34, len: 1.35, off: 0.05, color: 0xe0b45c, lens: 0xfff0c2 }
+    { mag: 4,  total: 40,  dof: 18.0, field: 4.5,  light: 1.00, sigma: 0.300, px: 105, plane: 1.00, len: 0.72, off: 0.25, color: 0x00e5f0, lens: 0x9ffcff },
+    { mag: 10, total: 100, dof: 7.0,  field: 1.8,  light: 0.82, sigma: 0.155, px: 240, plane: 0.66, len: 0.95, off: 0.05, color: 0x9d6cf5, lens: 0xd8b8ff },
+    { mag: 40, total: 400, dof: 2.0,  field: 0.45, light: 0.64, sigma: 0.060, px: 400, plane: 0.34, len: 1.35, off: 0.05, color: 0xff2bd6, lens: 0xffb8ec }
   ];
   var LAYER_Z = [0.18, 0.50, 0.82];                       // 焦平面归一化位置
   var LAYER_Y = LAYER_Z.map(function (z) { return 1.35 + (z - 0.5) * 2.4; });
-  var LAYER_RGB = ['255,150,96', '255,208,138', '120,222,196'];
-  var LAYER_HEX = [0xff9660, 0xffd08a, 0x78dec4];
+  // 赛博朋克：三层细胞用品红 / 青 / 紫霓虹色
+  var LAYER_RGB = ['255,64,196', '0,232,255', '168,108,255'];
+  var LAYER_HEX = [0xff40c4, 0x00e8ff, 0xa86cff];
 
   var state = {
     obj: 1,
@@ -46,25 +47,25 @@
   // ------------------------------------------------------------------
   // 渲染器 / 场景 / 相机 / 灯光
   // ------------------------------------------------------------------
-  var renderer = new THREE.WebGLRenderer({ canvas: elScene, antialias: true, powerPreference: 'high-performance' });
+  var renderer = new THREE.WebGLRenderer({ canvas: elScene, antialias: true, alpha: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(window.innerWidth, window.innerHeight, false);
   renderer.outputEncoding = THREE.sRGBEncoding;
-  renderer.setClearColor(0x070b13, 1);
+  renderer.setClearColor(0x060312, 0);   // 透明，露出 CSS 的紫黑渐变 + 霓虹网格
 
   var scene = new THREE.Scene();
   scene.fog = null;
   var camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 120);
   var camTarget = new THREE.Vector3(0, 3.0, 0);
 
-  scene.add(new THREE.HemisphereLight(0x9fc4ff, 0x111827, 0.42));
-  var keyLight = new THREE.DirectionalLight(0xffe9cf, 0.72);
+  scene.add(new THREE.HemisphereLight(0x8f7dff, 0x140a24, 0.46));
+  var keyLight = new THREE.DirectionalLight(0xbfe9ff, 0.70);
   keyLight.position.set(7, 12, 9);
   scene.add(keyLight);
-  var rimLight = new THREE.DirectionalLight(0x6fb8ff, 0.40);
+  var rimLight = new THREE.DirectionalLight(0xff3ad0, 0.55);
   rimLight.position.set(-9, 5, -7);
   scene.add(rimLight);
-  var lampLight = new THREE.PointLight(0xffcf94, 0.35, 9, 2);
+  var lampLight = new THREE.PointLight(0x00e8ff, 0.40, 9, 2);
   lampLight.position.set(0, -1.2, 0);
   scene.add(lampLight);
 
@@ -74,12 +75,12 @@
       color: color, roughness: 0.42, metalness: 0.62
     }, opts || {}));
   }
-  var metal = M(0x596b82, { roughness: 0.5, metalness: 0.7, side: THREE.DoubleSide });
-  var metalDark = M(0x1e2937, { roughness: 0.62, metalness: 0.55, side: THREE.DoubleSide });
-  var brass = M(0x9a754a, { roughness: 0.4, metalness: 0.8 });
-  var black = M(0x111823, { roughness: 0.78, metalness: 0.25 });
+  var metal = M(0x5b4a86, { roughness: 0.42, metalness: 0.78, side: THREE.DoubleSide });
+  var metalDark = M(0x241238, { roughness: 0.55, metalness: 0.62, side: THREE.DoubleSide });
+  var brass = M(0x00b8c8, { roughness: 0.32, metalness: 0.85 });
+  var black = M(0x0c0818, { roughness: 0.7, metalness: 0.3 });
   var glass = new THREE.MeshPhongMaterial({
-    color: 0xbfe4ff, transparent: true, opacity: 0.24, shininess: 120,
+    color: 0x8fe8ff, transparent: true, opacity: 0.24, shininess: 120,
     side: THREE.DoubleSide, depthWrite: false
   });
 
@@ -126,7 +127,7 @@
   // 照明：发光圆盘 + 向上的光锥
   var lamp = new THREE.Mesh(
     new THREE.CylinderGeometry(0.86, 0.86, 0.14, 32),
-    new THREE.MeshStandardMaterial({ color: 0xe0b981, emissive: 0xffae55, emissiveIntensity: 0.55, roughness: 0.5 })
+    new THREE.MeshStandardMaterial({ color: 0x7fe8f0, emissive: 0x00e8ff, emissiveIntensity: 0.8, roughness: 0.5 })
   );
   lamp.position.set(0, -1.75, 0);
   scene.add(lamp);
@@ -135,7 +136,7 @@
   scene.add(lampStem);
   var lampCone = new THREE.Mesh(
     new THREE.CylinderGeometry(0.72, 0.36, 2.1, 28, 1, true),
-    new THREE.MeshBasicMaterial({ color: 0xffd39a, transparent: true, opacity: 0.035, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })
+    new THREE.MeshBasicMaterial({ color: 0x00e8ff, transparent: true, opacity: 0.05, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })
   );
   lampCone.position.set(0, -0.72, 0);
   scene.add(lampCone);
@@ -155,7 +156,7 @@
   stage.position.y = -0.02;
   scene.add(stage);
   // 台面压片夹
-  var clipMat = M(0xa9b8ca, { roughness: 0.3, metalness: 0.8 });
+  var clipMat = M(0x00d0e0, { roughness: 0.28, metalness: 0.85 });
   [-1, 1].forEach(function (s) {
     var clip = box(0.13, 0.06, 2.1, clipMat, s * 2.15, 0.42, 0);
     clip.rotation.y = s * 0.11;
@@ -173,13 +174,13 @@
   specimen.add(slide);
   var slideEdge = new THREE.LineSegments(
     new THREE.EdgesGeometry(new THREE.BoxGeometry(5.4, 0.1, 2.9)),
-    new THREE.LineBasicMaterial({ color: 0x9fd6ff, transparent: true, opacity: 0.5 })
+    new THREE.LineBasicMaterial({ color: 0x00e8ff, transparent: true, opacity: 0.65 })
   );
   slideEdge.position.y = 0.32;
   specimen.add(slideEdge);
   var film = new THREE.Mesh(
     new THREE.PlaneGeometry(4.9, 2.5),
-    new THREE.MeshBasicMaterial({ color: 0xffbb88, transparent: true, opacity: 0.07, depthWrite: false, side: THREE.DoubleSide })
+    new THREE.MeshBasicMaterial({ color: 0xff2bd6, transparent: true, opacity: 0.08, depthWrite: false, side: THREE.DoubleSide })
   );
   film.rotation.x = -Math.PI / 2;
   film.position.y = 0.375;
@@ -236,8 +237,8 @@
       color: LAYER_HEX[li], transparent: true, opacity: 0.6, depthWrite: false
     });
     var nucMat = new THREE.MeshStandardMaterial({
-      color: 0x8d5766, emissive: LAYER_HEX[li], emissiveIntensity: 0.18,
-      transparent: true, opacity: 0.9, roughness: 0.6, depthWrite: false
+      color: 0x1a0a2e, emissive: LAYER_HEX[li], emissiveIntensity: 0.42,
+      transparent: true, opacity: 0.95, roughness: 0.5, depthWrite: false
     });
     var body = new THREE.InstancedMesh(cellGeo, bodyMat, list.length);
     var nuc = new THREE.InstancedMesh(nucGeo, nucMat, list.length);
@@ -319,7 +320,7 @@
     });
     var tip = new THREE.Mesh(
       new THREE.SphereGeometry(0.19, 20, 12),
-      new THREE.MeshStandardMaterial({ color: 0x101820, emissive: o.lens, emissiveIntensity: 0.35, roughness: 0.15, metalness: 0.3 })
+      new THREE.MeshStandardMaterial({ color: 0x0a0416, emissive: o.lens, emissiveIntensity: 0.45, roughness: 0.15, metalness: 0.3 })
     );
     tip.scale.set(1, 0.35, 1);
     tip.position.y = -0.25 - o.len + 0.02;
@@ -327,7 +328,7 @@
     // 工作中的物镜亮起青色光环，切换时一眼能看到转到了哪支
     var halo = new THREE.Mesh(
       new THREE.TorusGeometry(0.40, 0.05, 8, 28),
-      new THREE.MeshBasicMaterial({ color: 0x6fe6ff, transparent: true, opacity: 0.08, depthWrite: false })
+      new THREE.MeshBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.14, depthWrite: false })
     );
     halo.rotation.x = Math.PI / 2;
     halo.position.y = -0.25 - o.len * 0.58;
@@ -348,13 +349,13 @@
   // 光路上半段（标本 → 物镜 → 目镜），示意用
   var beam = new THREE.Mesh(
     new THREE.CylinderGeometry(0.30, 0.62, 7.4, 28, 1, true),
-    new THREE.MeshBasicMaterial({ color: 0x9fe0ff, transparent: true, opacity: 0.028, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })
+    new THREE.MeshBasicMaterial({ color: 0x00e8ff, transparent: true, opacity: 0.04, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })
   );
   beam.position.set(0, 6.1, 0);
   scene.add(beam);
   var beamCore = new THREE.Mesh(
     new THREE.CylinderGeometry(0.035, 0.07, 7.4, 12, 1, true),
-    new THREE.MeshBasicMaterial({ color: 0xcaf2ff, transparent: true, opacity: 0.11, blending: THREE.AdditiveBlending, depthWrite: false })
+    new THREE.MeshBasicMaterial({ color: 0xd0faff, transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending, depthWrite: false })
   );
   beamCore.position.set(0, 6.1, 0);
   scene.add(beamCore);
@@ -382,10 +383,10 @@
     g.add(mark);
     return g;
   }
-  var coarseKnob = makeKnob(0.92, 0.34, 0xd8645c, 18, 'coarse');
+  var coarseKnob = makeKnob(0.92, 0.34, 0xff2bd6, 18, 'coarse');
   coarseKnob.position.set(-3.40, 2.05, 1.05);
   scene.add(coarseKnob);
-  var fineKnob = makeKnob(0.52, 0.22, 0x5c9ee0, 14, 'fine');
+  var fineKnob = makeKnob(0.52, 0.22, 0x00e8ff, 14, 'fine');
   fineKnob.position.set(-3.40, 2.05, 1.05 + 0.34);
   scene.add(fineKnob);
   var knobAxle = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.9, 16), metalDark);
@@ -397,24 +398,28 @@
   // 发光焦平面 + 景深厚度
   // ------------------------------------------------------------------
   var fpUniforms = {
-    uTime: { value: 0 }, uAlpha: { value: 1 }, uColor: { value: new THREE.Color(0x55d8ff) }
+    uTime: { value: 0 }, uAlpha: { value: 1 },
+    uColor: { value: new THREE.Color(0x00e8ff) },
+    uColor2: { value: new THREE.Color(0xff2bd6) }
   };
   var fpMat = new THREE.ShaderMaterial({
     uniforms: fpUniforms,
     vertexShader: 'varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
     fragmentShader: [
-      'uniform float uTime; uniform float uAlpha; uniform vec3 uColor;',
+      'uniform float uTime; uniform float uAlpha; uniform vec3 uColor; uniform vec3 uColor2;',
       'varying vec2 vUv;',
       'void main(){',
       '  vec2 p = vUv*2.0-1.0;',
       '  float r = length(vec2(p.x*0.92, p.y));',
       '  float inside = smoothstep(1.0, 0.80, r);',
-      '  float grid = 0.5+0.5*sin((vUv.x+vUv.y)*70.0);',
+      '  float grid = pow(0.5+0.5*sin(vUv.x*90.0), 6.0) + pow(0.5+0.5*sin(vUv.y*60.0), 6.0);',
       '  float scan = pow(max(0.0, sin(vUv.x*16.0 - uTime*1.6)), 20.0);',
+      '  float sweep = pow(max(0.0, sin(vUv.y*3.0 - uTime*0.9)), 8.0);',
       '  float edge = pow(max(0.0, 1.0-abs(r-0.94)*9.0), 2.0);',
       '  float core = exp(-r*r*3.2);',
-      '  float a = (0.014 + 0.010*grid + 0.075*scan + 0.24*edge + 0.012*core) * inside * uAlpha;',
-      '  gl_FragColor = vec4(uColor, a);',
+      '  float a = (0.016 + 0.022*grid + 0.10*scan + 0.06*sweep + 0.30*edge + 0.016*core) * inside * uAlpha;',
+      '  vec3 col = mix(uColor, uColor2, clamp(0.5+0.5*sin(vUv.y*5.0 - uTime*0.7)*sweep + grid*0.25, 0.0, 1.0));',
+      '  gl_FragColor = vec4(col, a);',
       '}'
     ].join('\n'),
     transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide
@@ -429,7 +434,7 @@
       new THREE.Vector3(-3, -1.95, 0), new THREE.Vector3(3, -1.95, 0),
       new THREE.Vector3(3, 1.95, 0), new THREE.Vector3(-3, 1.95, 0)
     ]),
-    new THREE.LineBasicMaterial({ color: 0x8ff4ff, transparent: true, opacity: 0.8, depthWrite: false })
+    new THREE.LineBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.95, depthWrite: false })
   );
   fpBorder.rotation.x = -Math.PI / 2;
   fpBorder.position.y = 0.004;
@@ -438,8 +443,8 @@
 
   var dofGroup = new THREE.Group();
   scene.add(dofGroup);
-  var dofFillMat = new THREE.MeshBasicMaterial({ color: 0x6fe6ff, transparent: true, opacity: 0.028, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
-  var dofLineMat = new THREE.LineBasicMaterial({ color: 0x8ff0ff, transparent: true, opacity: 0.40 });
+  var dofFillMat = new THREE.MeshBasicMaterial({ color: 0xff2bd6, transparent: true, opacity: 0.04, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+  var dofLineMat = new THREE.LineBasicMaterial({ color: 0xff6ee0, transparent: true, opacity: 0.5 });
   var dofFill = null, dofLines = null;
   function rebuildDof() {
     var thin = 0.06 + OBJ[state.obj].dof / 18 * 0.62;
@@ -515,7 +520,7 @@
     ctx.beginPath(); ctx.arc(c, c, R, 0, Math.PI * 2); ctx.clip();
 
     var bg = ctx.createRadialGradient(c, c, 8, c, c, R);
-    bg.addColorStop(0, '#241c17'); bg.addColorStop(0.65, '#12141b'); bg.addColorStop(1, '#04070c');
+    bg.addColorStop(0, '#1a0c30'); bg.addColorStop(0.65, '#0c0820'); bg.addColorStop(1, '#03010a');
     ctx.fillStyle = bg; ctx.fillRect(0, 0, S, S);
 
     var PX = state.pxCurrent;
@@ -553,12 +558,12 @@
           lctx.ellipse(cc.x + cc.nx, nz2, cc.nr * 1.15, cc.nr * 0.82, 0.4, 0, Math.PI * 2);
           lctx.fillStyle = 'rgba(' + rgb + ',' + (0.30 + 0.48 * s) + ')';
           lctx.fill();
-          lctx.strokeStyle = 'rgba(255,245,225,' + (0.22 + 0.55 * s) + ')';
+          lctx.strokeStyle = 'rgba(220,200,255,' + (0.22 + 0.55 * s) + ')';
           lctx.lineWidth = 1.1 / PX;
           lctx.stroke();
           lctx.beginPath();
           lctx.arc(cc.x + cc.nx + 0.02, nz2 - 0.01, cc.nr * 0.3, 0, Math.PI * 2);
-          lctx.fillStyle = 'rgba(90,45,30,' + (0.35 + 0.45 * s) + ')';
+          lctx.fillStyle = 'rgba(28,8,44,' + (0.4 + 0.5 * s) + ')';
           lctx.fill();
           lctx.strokeStyle = 'rgba(' + rgb + ',' + (0.42 * alpha + 0.16) + ')';
           lctx.fillStyle = 'rgba(' + rgb + ',' + (0.055 + 0.17 * s) + ')';
@@ -577,7 +582,7 @@
       ctx.globalAlpha = 0.10;
       for (var g = 0; g < 90; g++) {
         var gx = c + Math.cos(g * 2.4) * (g * 2.6), gy = c + Math.sin(g * 1.7) * (g * 2.1);
-        ctx.fillStyle = g % 3 ? '#ffe6bd' : '#9fe8ff';
+        ctx.fillStyle = g % 3 ? '#b6ff3a' : '#00e8ff';
         ctx.fillRect(gx, gy, 1.6, 1.6);
       }
       ctx.globalAlpha = 1;
@@ -591,7 +596,7 @@
     ctx.fillStyle = vg; ctx.fillRect(0, 0, S, S);
 
     // 十字准线
-    ctx.strokeStyle = 'rgba(190,225,255,0.16)';
+    ctx.strokeStyle = 'rgba(0,240,255,0.30)';
     ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(c - 26, c); ctx.lineTo(c - 7, c);
     ctx.moveTo(c + 7, c); ctx.lineTo(c + 26, c);
@@ -861,11 +866,11 @@
       state.sharp[i] = s;
       if (s > best) best = s;
       var m = layerMats[i];
-      m.body.opacity = 0.12 + 0.44 * s;
-      m.body.emissiveIntensity = 0.04 + 0.30 * s;
-      m.wire.opacity = 0.055 + 0.72 * s;
-      m.nuc.opacity = 0.20 + 0.75 * s;
-      m.nuc.emissiveIntensity = 0.06 + 0.30 * s;
+      m.body.opacity = 0.14 + 0.50 * s;
+      m.body.emissiveIntensity = 0.06 + 0.55 * s;
+      m.wire.opacity = 0.08 + 0.82 * s;
+      m.nuc.opacity = 0.22 + 0.76 * s;
+      m.nuc.emissiveIntensity = 0.08 + 0.55 * s;
     }
     var fy = 1.35 + (state.focus - 0.5) * 2.4;
     focusPlane.position.y = fy;

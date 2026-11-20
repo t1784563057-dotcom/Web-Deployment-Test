@@ -9,17 +9,24 @@
 </head>
 <body>
 
+<div class="fx-layer" aria-hidden="true">
+  <div class="fx-grid"></div>
+  <div class="fx-beam"></div>
+  <div class="fx-scan"></div>
+  <div class="fx-vig"></div>
+</div>
+
 <div id="stage">
   <canvas id="scene"></canvas>
   <div id="labels"></div>
 </div>
 
 <header class="hud hud-title">
-  <h1>把显微镜剖开看</h1>
-  <p>一台会说话的光学显微镜 · 洋葱表皮</p>
+  <h1 data-text="把显微镜剖开看">把显微镜剖开看</h1>
+  <p><b>///</b> 一台会说话的光学显微镜 · 洋葱表皮</p>
 </header>
 
-<section class="hud hud-numbers" aria-live="polite">
+<section class="hud hud-numbers neon-panel" aria-live="polite">
   <div class="stat">
     <span class="stat-key">总放大倍数</span>
     <span class="stat-val"><b id="v-mag">100</b><i>×</i></span>
@@ -37,7 +44,7 @@
   <button id="btn-tips" class="round-btn round-btn-text" aria-label="显示或收起操作提示" title="操作提示">操作</button>
 </div>
 
-<aside id="tips" class="hud tips" aria-label="操作提示">
+<aside id="tips" class="hud tips neon-panel" aria-label="操作提示">
   <div class="tips-head">
     <span>怎么玩</span>
     <button id="tips-close" aria-label="收起操作提示">×</button>
